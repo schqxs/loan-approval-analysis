@@ -1293,7 +1293,7 @@ elif page == "Discussion":
 elif page == "API":
     st.title("REST API")
 
-    api_url = "http://localhost:8000"
+    api_url = "https://loan-approval-api-spni.onrender.com"
 
     try:
         response = requests.get(api_url, timeout=3)
@@ -1506,5 +1506,5 @@ elif page == "API":
 
     st.markdown(
         "[Open interactive FastAPI documentation]"
-        "(http://localhost:8000/docs)"
+        "(https://loan-approval-api-spni.onrender.com/docs)"
     )
