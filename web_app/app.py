@@ -95,7 +95,7 @@ if page == "About":
         )
 
     with col2:
-        st.markdown("#### Tymanian Syuzi 256")
+        st.markdown("#### Tumanian Syuzi 256")
         st.write(
             """
             Focused on descriptive statistics, detailed overview, data
