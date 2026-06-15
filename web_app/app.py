@@ -1295,16 +1295,19 @@ elif page == "API":
 
     api_url = "https://loan-approval-api-spni.onrender.com"
 
-    try:
-        response = requests.get(api_url, timeout=3)
-        response.raise_for_status()
-        st.success("FastAPI service is running")
-    except requests.RequestException:
-        st.error(
-            "FastAPI is not running. Start it with: "
-            "uvicorn api:app --reload"
-        )
-        st.stop()
+    with st.spinner(
+        "Connecting to the public API. "
+        "The service may need up to a minute to wake up."
+    ):
+        try:
+            response = requests.get(api_url, timeout=75)
+            response.raise_for_status()
+            st.success("FastAPI service is available online")
+        except requests.RequestException:
+            st.error(
+                "The public API is temporarily unavailable. "
+                "Please wait one minute and reload this page."
+            )
 
     st.subheader("Get Loan Applications")
 
@@ -1353,7 +1356,7 @@ elif page == "API":
             response = requests.get(
                 f"{api_url}/loans",
                 params=parameters,
-                timeout=10
+                timeout=75
             )
 
             response.raise_for_status()
@@ -1490,7 +1493,7 @@ elif page == "API":
             response = requests.post(
                 f"{api_url}/loans",
                 json=new_application,
-                timeout=10
+                timeout=75
             )
 
             response.raise_for_status()
