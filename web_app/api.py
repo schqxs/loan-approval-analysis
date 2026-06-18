@@ -1,8 +1,13 @@
+import os
 from pathlib import Path
+
 import pandas as pd
-from fastapi import FastAPI, Query
 import json
+from fastapi import FastAPI, HTTPException, Query, Request
 from pydantic import BaseModel, Field
+from telegram import Update
+
+from telegram_bot import build_application
 
 
 app = FastAPI(
@@ -18,6 +23,13 @@ DATA_PATH = Path(__file__).parent.parent / "loan_data.csv"
 
 
 df = pd.read_csv(DATA_PATH)
+
+telegram_application = (
+    build_application()
+    if os.getenv("TELEGRAM_BOT_TOKEN")
+    else None
+)
+
 
 class LoanApplication(BaseModel):
     person_age: float = Field(gt=0, le=100)
@@ -36,12 +48,49 @@ class LoanApplication(BaseModel):
     loan_status: int = Field(ge=0, le=1)
 
 
+@app.on_event("startup")
+async def start_telegram_bot():
+    if telegram_application is not None:
+        await telegram_application.initialize()
+        await telegram_application.start()
+
+
+@app.on_event("shutdown")
+async def stop_telegram_bot():
+    if telegram_application is not None:
+        await telegram_application.stop()
+        await telegram_application.shutdown()
+
+
 @app.get("/")
 def root():
     return {
         "message": "Loan Approval API is running",
-        "number_of_applications": len(df)
+        "number_of_applications": len(df),
+        "telegram_bot": (
+            "configured"
+            if telegram_application is not None
+            else "not configured"
+        ),
     }
+
+
+@app.post("/telegram/webhook", include_in_schema=False)
+async def telegram_webhook(request: Request):
+    if telegram_application is None:
+        raise HTTPException(
+            status_code=503,
+            detail="Telegram bot is not configured",
+        )
+
+    update = Update.de_json(
+        await request.json(),
+        telegram_application.bot,
+    )
+    await telegram_application.process_update(update)
+
+    return {"ok": True}
+
 
 @app.get("/loans")
 def get_loans(

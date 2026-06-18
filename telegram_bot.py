@@ -1487,9 +1487,9 @@ async def help_command(
     )
 
 
-def main():
+def build_application():
     if not TOKEN:
-        raise ValueError("TELEGRAM_BOT_TOKEN is missing in .env")
+        raise ValueError("TELEGRAM_BOT_TOKEN is missing")
 
     application = Application.builder().token(TOKEN).build()
 
@@ -1527,6 +1527,12 @@ def main():
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CallbackQueryHandler(handle_menu))
+
+    return application
+
+
+def main():
+    application = build_application()
 
     print("Telegram bot is running...")
     application.run_polling()
